@@ -1,0 +1,205 @@
+/**
+ * TypeScript built-in utility types. Always safe to ignore — these are global
+ * compiler intrinsics that cannot be resolved by reading source files.
+ */
+export const TYPESCRIPT_IGNORE_TYPES: readonly string[] = [
+  "Omit",
+  "Pick",
+  "Partial",
+  "Required",
+  "Readonly",
+  "Record",
+  "Exclude",
+  "Extract",
+  "NonNullable",
+  "ReturnType",
+  "Parameters",
+  "InstanceType",
+  "ConstructorParameters",
+  "ThisParameterType",
+  "OmitThisParameter",
+  "ThisType",
+  "Awaited",
+  "Promise",
+  "PromiseLike",
+  "Uppercase",
+  "Lowercase",
+  "Capitalize",
+  "Uncapitalize",
+  "NoInfer",
+];
+
+/**
+ * React types that either expand into huge internal structures or are opaque
+ * runtime types. Keeps the output focused on user-authored props.
+ */
+export const REACT_IGNORE_TYPES: readonly string[] = [
+  // Nodes & elements
+  "ReactNode",
+  "ReactElement",
+  "ReactFragment",
+  "ReactPortal",
+  "JSX.Element",
+  "JSX.IntrinsicElements",
+
+  // Component types
+  "FC",
+  "FunctionComponent",
+  "Component",
+  "PureComponent",
+  "ComponentClass",
+  "ComponentType",
+  "LazyExoticComponent",
+  "ExoticComponent",
+  "NamedExoticComponent",
+  "MemoExoticComponent",
+  "ForwardRefExoticComponent",
+
+  // Refs
+  "Ref",
+  "RefObject",
+  "MutableRefObject",
+  "ForwardedRef",
+  "RefCallback",
+  "LegacyRef",
+
+  // Context / hooks
+  "Context",
+  "Dispatch",
+  "SetStateAction",
+  "Reducer",
+  "ReducerState",
+  "ReducerAction",
+
+  // Props wrappers
+  "PropsWithChildren",
+  "PropsWithRef",
+  "PropsWithoutRef",
+
+  // Misc
+  "Key",
+  "CSSProperties",
+  "ErrorInfo",
+  "SuspenseProps",
+  "StrictModeProps",
+  "ProfilerProps",
+
+  // Events (types)
+  "SyntheticEvent",
+  "ClipboardEvent",
+  "CompositionEvent",
+  "DragEvent",
+  "FocusEvent",
+  "FormEvent",
+  "ChangeEvent",
+  "KeyboardEvent",
+  "MouseEvent",
+  "PointerEvent",
+  "TouchEvent",
+  "TransitionEvent",
+  "AnimationEvent",
+  "WheelEvent",
+  "UIEvent",
+  "BaseSyntheticEvent",
+
+  // Event handlers
+  "EventHandler",
+  "ReactEventHandler",
+  "ClipboardEventHandler",
+  "CompositionEventHandler",
+  "DragEventHandler",
+  "FocusEventHandler",
+  "FormEventHandler",
+  "ChangeEventHandler",
+  "KeyboardEventHandler",
+  "MouseEventHandler",
+  "PointerEventHandler",
+  "TouchEventHandler",
+  "TransitionEventHandler",
+  "AnimationEventHandler",
+  "WheelEventHandler",
+  "UIEventHandler",
+];
+
+/**
+ * HTML / DOM attribute interfaces from `@types/react`. Each of these expands
+ * into 50-200+ inherited DOM properties that bury the component's own API.
+ */
+export const DOM_IGNORE_TYPES: readonly string[] = [
+  // Generic
+  "HTMLAttributes",
+  "AllHTMLAttributes",
+  "DOMAttributes",
+  "AriaAttributes",
+  "SVGAttributes",
+
+  // Per-element attribute interfaces
+  "AnchorHTMLAttributes",
+  "AreaHTMLAttributes",
+  "AudioHTMLAttributes",
+  "BaseHTMLAttributes",
+  "BlockquoteHTMLAttributes",
+  "ButtonHTMLAttributes",
+  "CanvasHTMLAttributes",
+  "ColHTMLAttributes",
+  "ColgroupHTMLAttributes",
+  "DataHTMLAttributes",
+  "DetailsHTMLAttributes",
+  "DelHTMLAttributes",
+  "DialogHTMLAttributes",
+  "EmbedHTMLAttributes",
+  "FieldsetHTMLAttributes",
+  "FormHTMLAttributes",
+  "IframeHTMLAttributes",
+  "ImgHTMLAttributes",
+  "InputHTMLAttributes",
+  "InsHTMLAttributes",
+  "KeygenHTMLAttributes",
+  "LabelHTMLAttributes",
+  "LiHTMLAttributes",
+  "LinkHTMLAttributes",
+  "MapHTMLAttributes",
+  "MenuHTMLAttributes",
+  "MetaHTMLAttributes",
+  "MeterHTMLAttributes",
+  "ObjectHTMLAttributes",
+  "OlHTMLAttributes",
+  "OptgroupHTMLAttributes",
+  "OptionHTMLAttributes",
+  "OutputHTMLAttributes",
+  "ParamHTMLAttributes",
+  "ProgressHTMLAttributes",
+  "QuoteHTMLAttributes",
+  "ScriptHTMLAttributes",
+  "SelectHTMLAttributes",
+  "SlotHTMLAttributes",
+  "SourceHTMLAttributes",
+  "StyleHTMLAttributes",
+  "TableHTMLAttributes",
+  "TdHTMLAttributes",
+  "TextareaHTMLAttributes",
+  "ThHTMLAttributes",
+  "TimeHTMLAttributes",
+  "TrackHTMLAttributes",
+  "VideoHTMLAttributes",
+  "WebViewHTMLAttributes",
+
+  // DOM element types
+  "Element",
+  "HTMLElement",
+  "HTMLInputElement",
+  "HTMLButtonElement",
+  "HTMLTextAreaElement",
+  "HTMLSelectElement",
+  "HTMLAnchorElement",
+  "HTMLFormElement",
+  "HTMLDivElement",
+  "HTMLSpanElement",
+  "HTMLImageElement",
+  "HTMLTableElement",
+  "HTMLCanvasElement",
+  "HTMLVideoElement",
+  "HTMLAudioElement",
+  "EventTarget",
+  "Node",
+];

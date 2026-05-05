@@ -1,0 +1,36 @@
+{
+  "name": "@oxc-ts-docgen/docgen",
+  "version": "0.0.1",
+  "bin": {
+    "oxc-ts-docgen": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch"
+  },
+  "dependencies": {
+    "@oxc-project/types": "^0.129.0",
+    "comment-parser": "^1.4.1",
+    "oxc-parser": "^0.129.0",
+    "oxc-resolver": "^11.19.1"
+  }
+}

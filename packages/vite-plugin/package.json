@@ -1,0 +1,36 @@
+{
+  "name": "@oxc-ts-docgen/vite-plugin",
+  "version": "0.0.1",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch"
+  },
+  "dependencies": {
+    "@oxc-project/types": "^0.129.0",
+    "@oxc-ts-docgen/docgen": "workspace:*",
+    "oxc-parser": "^0.129.0",
+    "oxc-walker": "^0.7.0"
+  },
+  "peerDependencies": {
+    "vite": ">=6.0.0"
+  }
+}
