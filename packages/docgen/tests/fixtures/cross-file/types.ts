@@ -12,8 +12,12 @@ export type ButtonVariant = "primary" | "secondary" | "ghost";
  * Base props shared across components.
  */
 export interface BaseProps {
-  /** Unique identifier. */
+  /**
+   * Unique identifier.
+   */
   id?: string;
-  /** CSS class name. */
+  /**
+   * CSS class name.
+   */
   className?: string;
 }

@@ -1,326 +1,298 @@
 # oxc-ts-docgen Agent Guide
 
-This file is the operating manual for AI agents working in this repository.
-Prefer these instructions over generic assumptions.
+Repository-specific instructions for AI agents. Prefer these over generic
+defaults.
+
+## Communication Preference
+
+The user is a B2- English learner aiming for C1. When a task message contains
+meaningful natural-language English, briefly help improve it before solving the
+coding task.
+
+Use this format only when useful:
+
+```md
+**English micro-lesson**
+
+- **C1 rewrite:** Rewrite the request in polished, natural English without changing the technical meaning.
+- **Main issue:** Mention 1-2 grammar, vocabulary, or clarity improvements.
+- **Useful phrase:** Give 0-2 relevant technical English phrases.
+```
+
+Skip the lesson when the message is short, urgent, mostly code/logs/diffs,
+mostly filenames/API names, or already clear enough. Never correct code,
+commands, identifiers, quoted strings, or error messages unless asked.
+
+## Serena And Memory
+
+Use Serena as the primary code-navigation tool.
+
+At the start of each session:
+
+- Activate the current directory as a Serena project.
+- Check onboarding/project memories.
+- Read relevant memories before broad exploration.
+
+For traversal:
+
+- Prefer symbol overview, declarations, references, and focused searches.
+- Read full files only when symbol-level context is insufficient.
+- After substantial changes, check whether durable Serena memories need updates.
+- Update only stable project knowledge: architecture, package structure,
+  commands, conventions, public APIs, and important workflows.
 
 ## Shell
 
-All terminal commands must use Git Bash through PowerShell:
+Run terminal commands through Git Bash from PowerShell:
 
 ```powershell
 & "C:\WebDev\Git\bin\bash.exe" -lc "{COMMAND}"
 ```
 
-Examples:
-
-```powershell
-& "C:\WebDev\Git\bin\bash.exe" -lc "pnpm test"
-& "C:\WebDev\Git\bin\bash.exe" -lc "pnpm lint"
-& "C:\WebDev\Git\bin\bash.exe" -lc "find packages -type f | sort"
-```
-
-Use `rg` when available, but in this environment Git Bash may not be able to run
-the bundled `rg` binary. If `rg` fails, use `grep`, `find`, or `git ls-files`
-when the repository is initialized.
+Use `rg` when available. If Git Bash cannot run the bundled `rg`, use `grep`,
+`find`, or `git ls-files`.
 
 ## Product Direction
 
-`oxc-ts-docgen` is a static-analysis-first TypeScript documentation generator.
-It should remain fast, explicit, source-faithful, and JSDoc-first.
+`oxc-ts-docgen` is a Vite-first structured type metadata generator for custom
+docs UIs.
 
-The core API is:
+Honest pitch:
+
+```txt
+TypeDoc documents APIs.
+oxc-ts-docgen extracts structured metadata for one requested TypeScript type inside a Vite app.
+```
+
+Supported compile-time forms:
 
 ```ts
 const docs = getDocs<MyType>();
+const docs = getDocs({ path: "./types", symbol: "MyType" });
+const examples = getDocs([{ id: "my-type", path: "./types", symbol: "MyType" }] as const);
 ```
 
-Documented targets can be interfaces, type aliases, enums, function types,
-utility-composed props objects, design-token types, config schemas, domain
-models, or any other source-authored TypeScript type.
+Do not turn the project into a documentation site generator, TypeDoc/API
+Extractor replacement, Storybook argTypes producer, React component detector, or
+React auto-docgen clone.
 
-Optimize for:
+Core architecture:
 
-- Fast startup indexing for large libraries.
-- Very fast Vite HMR rebuilds.
-- JSDoc-first metadata.
-- Preserving authored type boundaries and source locations.
-- Predictable structured output for custom docs UIs.
-- Bounded static type resolution.
+```txt
+OXC = fast syntax/index/transform/HMR scanner
+TypeScript = semantic property resolver when needed
+Docgen = one normalized schema layer above both
+```
 
-Do not steer the core toward:
-
-- A full TypeScript compiler API migration.
-- Checker-perfect semantic evaluation.
-- React component auto-detection.
-- `memo`, `forwardRef`, HOC, styled-components, or class component analysis.
-- Direct Storybook `ComponentDoc` or `argTypes` output in core.
-- Exhaustive expansion of `@types/react` or DOM attribute interfaces.
-
-Adapters can be added later, but they should consume `DocSchema` rather than
-making the core React-specific.
+Preserve the hybrid direction: OXC for cheap syntax and Vite speed, TypeScript
+for semantic fallback, and one stable `DocSchema` output for custom UIs.
 
 ## Repository Layout
 
-This is a pnpm monorepo.
+This is a pnpm monorepo:
 
-- `packages/docgen` - core documentation engine (`@oxc-ts-docgen/docgen`)
-- `packages/vite-plugin` - Vite plugin for compile-time `getDocs<T>()`
-  transforms (`@oxc-ts-docgen/vite-plugin`)
-- `playground` - development/test application
-- `roadmap.md` - current product and implementation roadmap; read it before
-  large architectural changes
+- `packages/docgen`: core engine (`@synthfall/oxc-ts-docgen`).
+- `packages/vite-plugin`: Vite adapter (`@synthfall/oxc-ts-docgen-vite`).
+- `playground`: development app and curated schema-rendering UI.
+- `docs`: architecture and maintainer docs.
 
-## Key Source Files
+Core source layout:
 
-Core docgen:
+- `packages/docgen/src/index.ts`: public package root.
+- `packages/docgen/src/cli.ts`: CLI entry.
+- `packages/docgen/src/public`: API, config, debug records, presets.
+- `packages/docgen/src/schema`: `DocSchema` types and build pipeline.
+- `packages/docgen/src/project`: `DocgenProject`, project type index, schema cache.
+- `packages/docgen/src/builders`: static OXC builders.
+- `packages/docgen/src/resolver`: parser indexes, module resolution, exports,
+  heritage, generics, related types, source references.
+- `packages/docgen/src/semantic`: TypeScript semantic fallback.
+- `packages/docgen/src/graph`, `model`, `utils`: shared internals.
 
-- `packages/docgen/src/parser.ts` - `oxc-parser` wrapper and per-file indexes.
-- `packages/docgen/src/builder.ts` - converts OXC AST nodes into `DocSchema`,
-  `DocEntry`, `DocProperty`, and `DocType`.
-- `packages/docgen/src/module-resolver.ts` - internal `oxc-resolver` wrapper,
-  tsconfig-aware module specifier resolution, normalized paths, and resolution
-  caching.
-- `packages/docgen/src/resolver.ts` - static type resolver and file cache.
-- `packages/docgen/src/jsdoc.ts` - JSDoc extraction and tag normalization.
-- `packages/docgen/src/related-types.ts` - referenced project type collection.
-- `packages/docgen/src/schema.ts` - public output schema.
-- `packages/docgen/src/config.ts` - config surface and defaults.
-- `packages/docgen/src/cli.ts` - command-line entrypoint.
+Vite source layout:
 
-Vite plugin:
+- `packages/vite-plugin/src/index.ts`: public package root.
+- `packages/vite-plugin/src/plugin.ts`: Vite lifecycle.
+- `packages/vite-plugin/src/scanner`: call scanning.
+- `packages/vite-plugin/src/transform`: module, writer, and Vue SFC transforms.
+- `packages/vite-plugin/src/registry`: registry, dependency collector, source resolver.
+- `packages/vite-plugin/src/graph`, `utils`: HMR graphs and path helpers.
 
-- `packages/vite-plugin/src/transform.ts` - detects and replaces `getDocs<T>()`
-  calls.
-- `packages/vite-plugin/src/type-registry.ts` - project type index, schema
-  cache, type dependency graph, and consumer invalidation.
-- `packages/vite-plugin/src/plugin.ts` - Vite lifecycle and HMR integration.
-- `packages/vite-plugin/src/hmr.ts` - HMR-related helpers when present.
+Tests mirror source domains under `packages/*/tests/{public,resolver,...}`.
 
-Tests and fixtures:
-
-- `packages/docgen/tests/api.test.ts` - core schema extraction behavior.
-- `packages/docgen/tests/resolver.test.ts` - file-based cross-file resolution.
-- `packages/docgen/tests/bench.bench.ts` - performance benchmarks.
-- `packages/docgen/tests/fixtures/*` - source fixtures for core tests.
-- `packages/vite-plugin/tests/transform.test.ts` - compile-time transform tests.
-- `packages/vite-plugin/tests/type-registry.test.ts` - registry/HMR graph tests.
-- `packages/vite-plugin/tests/plugin.test.ts` - Vite hook behavior.
-
-## Package Scripts
+## Scripts
 
 Root scripts:
 
-- `pnpm test` - run all Vitest tests.
-- `pnpm build` - build all packages with tsup.
-- `pnpm lint` - run oxlint.
-- `pnpm fmt` - run oxfmt.
-- `pnpm dev` - start the playground through the workspace filter.
+- `pnpm test`: all Vitest tests.
+- `pnpm typecheck`: TypeScript project references.
+- `pnpm lint`: oxlint.
+- `pnpm format`: oxfmt with import sorting.
+- `pnpm build`: package builds with tsdown.
+- `pnpm release:check`: build plus publishable artifact verification.
+- `pnpm changeset`: create a Changesets release note.
+- `pnpm release:version`: apply Changesets versions/changelogs.
+- `pnpm release:publish`: verify release artifacts and publish with Changesets.
+- `pnpm dev`: playground through the workspace filter.
 
-Package scripts:
-
-- `pnpm --filter @oxc-ts-docgen/docgen run build`
-- `pnpm --filter @oxc-ts-docgen/vite-plugin run build`
-- `pnpm --filter playground run dev`
-
-Benchmark command:
+Useful focused validation:
 
 ```powershell
-& "C:\WebDev\Git\bin\bash.exe" -lc "pnpm exec vitest bench packages/docgen/tests/bench.bench.ts --run"
+& "C:\WebDev\Git\bin\bash.exe" -lc "pnpm exec vitest run packages/docgen/tests/public/api.test.ts packages/docgen/tests/resolver/resolver.test.ts packages/vite-plugin/tests/transform/transform.test.ts"
 ```
 
-## Coding Conventions
+For resolver/Vite contract changes, add:
 
-- Language: TypeScript.
-- Module system: ESM only (`"type": "module"`).
-- Node target: ES2023.
-- Build: tsup.
-- Test: Vitest with fixture-based tests and snapshots.
-- Lint: oxlint (`.oxlintrc.json`).
-- Format: oxfmt (`.oxfmtrc.json`).
-- Package manager: pnpm workspaces.
-- Source filenames: kebab-case, e.g. `related-types.ts`.
-- Test filenames: `packages/*/tests/<module>.test.ts`.
-- Fixtures: `packages/*/tests/fixtures/<name>.ts`.
+```powershell
+& "C:\WebDev\Git\bin\bash.exe" -lc "pnpm exec vitest run packages/docgen/tests/contracts/architecture-contracts.test.ts packages/vite-plugin/tests/plugin/plugin.test.ts"
+```
 
-Keep changes scoped. Avoid unrelated refactors and output churn.
+Run `pnpm typecheck` for TypeScript-facing changes and `pnpm release:check` for
+build/package/release changes.
+
+## Tooling
+
+- TypeScript strict mode, ESM, Node target ES2023.
+- Published packages support Node >=22.12.0.
+- Workspace dev tooling requires Node >=22.18.0.
+- CI runs Node 22.18.0 and Node 24.
+- pnpm 11 workspaces (`pnpm@11.9.0`).
+- Build with `tsdown`; tests with Vitest 4.
+- Package builds intentionally emit ESM and CommonJS. Current `tsdown` CommonJS
+  recommendation warnings are accepted release noise while CJS entry points are
+  intentional.
 
 ## Architecture Rules
 
-### Static Analysis Boundary
+Hybrid boundary:
 
-Use `oxc-parser` ASTs and static source analysis for core docgen behavior.
-Do not introduce a TypeScript `Program`, `TypeChecker`, or LanguageService into
-the default extraction path.
+- OXC-facing modules may import OXC AST types.
+- Semantic modules may import TypeScript checker APIs.
+- Vite transform modules must not query TypeScript semantic types directly.
+- TypeScript fallback returns normalized intermediate results, not final
+  `DocSchema` objects.
+- Presets provide policy inputs, not schema-generation pipelines.
+- HMR dependency registration must use explicit dependency records from static
+  and semantic paths.
+- `ProjectSchemaCache` build results carry resolution outcomes, diagnostics,
+  and schema dependency records.
+- Public package roots export documented user APIs plus `DocgenProject`. Keep
+  resolver/cache/graph primitives internal; do not reintroduce hidden
+  `/internal` subpaths.
 
-Use `oxc-resolver` for static module resolution, including tsconfig discovery,
-`baseUrl`, and `paths`. Do not add `tsconfck` back unless the project needs
-direct tsconfig inspection outside module resolution, such as custom diagnostics
-or include/exclude interpretation. Keep all tsconfig usage separate from full
-checker semantics.
+Resolver behavior to preserve:
 
-### Output Philosophy
+- local declaration lookup;
+- relative/absolute import resolution through `ModuleResolver`;
+- extension aliases and directory `index.ts` candidates;
+- tsconfig `baseUrl` and wildcard `paths` via `oxc-resolver`;
+- clear diagnostics for missing, invalid, and unsupported explicit tsconfig
+  paths;
+- aliased imports and explicit/aliased/star type re-exports;
+- exported-symbol visibility for imported Vite targets and re-export traversal;
+- cross-file `extends` and multi-level inherited prop merging;
+- bounded generic substitution and supported utility composition;
+- hybrid fallback for unsupported object-like utilities and complex semantic
+  property sets;
+- dependency files for HMR, including semantic fallback and unresolved
+  exported-target recovery dependencies.
 
-The schema should preserve authored structure. Prefer structured `DocType`
-output over flattened type strings.
+Output rules:
 
-When a type cannot be safely evaluated:
+- Prefer structured `DocType` when cheap and reliable.
+- Preserve references or readable display/opaque output when types cannot be
+  safely evaluated.
+- Do not emit fake user-visible props such as `__unresolved`.
+- Do not silently return a successful empty property list for unsupported
+  object-like types in hybrid mode.
+- Debug records are opt-in through `experimentalDebug` and must not pollute
+  normal `DocSchema`.
 
-- Preserve a `reference` when the type name is known.
-- Preserve an `unresolved` marker when the syntax is unsupported.
-- Do not silently return an empty property list for an unsupported object-like
-  type.
+Vite rules:
 
-This is a documentation generator, not a typechecker.
-
-### Resolver Design
-
-The resolver should be deterministic, bounded, and cache-friendly.
-
-Current behavior includes:
-
-- Local declaration lookup.
-- Relative/absolute import resolution through the shared `ModuleResolver`.
-- Extension aliases and `index.ts` candidate resolution.
-- `tsconfig` discovery, `baseUrl`, and wildcard `paths` aliases through
-  `oxc-resolver`.
-- Aliased named imports.
-- Explicit, aliased, and star type re-exports through common barrel files.
-- Cross-file `extends`.
-- Multi-level inherited prop merging.
-- Static evaluation for common object-shaping utilities.
-- Explicit external type policy through
-  `externalTypes: 'ignore' | 'reference' | 'resolve'`.
-- Resolver trace metadata for Vite HMR dependency registration.
-
-Important pending areas:
-
-- Clear diagnostics for missing or invalid tsconfig files.
-- Bounded generic substitution.
-- Unsupported utility/property extraction should preserve visible unresolved
-  output instead of looking empty.
-- Default exports and namespace/qualified type references need clearer behavior.
-
-Before changing resolver behavior, add or update tests in
-`packages/docgen/tests/resolver.test.ts`, `packages/docgen/tests/api.test.ts`,
-and/or `packages/vite-plugin/tests/type-registry.test.ts`.
-
-### Vite Plugin Design
-
-The Vite plugin must keep transforms cheap.
-
-- `transform.ts` should only parse modules that contain `getDocs`.
-- Preserve unresolved `getDocs<T>()` calls in dev mode.
-- Fail unresolved calls in build mode.
+- Keep transforms cheap: parse only modules containing `getDocs`.
 - Respect shadowed local `getDocs` bindings.
-- Keep HMR dependency tracking accurate when types move, disappear, reappear,
-  or change through imported references.
+- Object and batch targets must be statically analyzable.
+- Imported generic targets and object/batch targets must resolve to exported
+  TypeScript module symbols.
+- In dev, preserve unresolved or unexported recoverable calls and register watch
+  dependencies; in build, fail.
+- Do not query semantic types from `transform.ts`.
+- Vue SFC support only transforms script blocks and preserves template/style.
 
-Avoid rebuilding the whole project in every transform. Prefer registry indexes,
-lazy schema builds, dependency graphs, and file-level invalidation.
+## Config Surface
 
-## Tests To Run
+Keep public config small:
 
-For docs-only changes:
-
-```powershell
-& "C:\WebDev\Git\bin\bash.exe" -lc "pnpm test"
-```
-
-For core extraction or resolver changes:
-
-```powershell
-& "C:\WebDev\Git\bin\bash.exe" -lc "pnpm test -- packages/docgen/tests/api.test.ts packages/docgen/tests/resolver.test.ts"
-```
-
-For Vite plugin changes:
-
-```powershell
-& "C:\WebDev\Git\bin\bash.exe" -lc "pnpm test -- packages/vite-plugin/tests"
-```
-
-For build or package export changes:
-
-```powershell
-& "C:\WebDev\Git\bin\bash.exe" -lc "pnpm build"
-```
-
-For formatting/lint-sensitive changes:
-
-```powershell
-& "C:\WebDev\Git\bin\bash.exe" -lc "pnpm fmt && pnpm lint"
-```
-
-If test snapshots change, inspect the changed output carefully. Snapshot churn
-usually means a schema behavior change and should be intentional.
-
-## Adding Features
-
-When adding core docgen behavior:
-
-1. Add a fixture or inline source test that captures the real TypeScript pattern.
-2. Update `DocType` only when the new syntax cannot be represented by existing
-   variants.
-3. Keep evaluation bounded by `maxDepth` or another explicit guard.
-4. Preserve source locations and JSDoc where possible.
-5. Add Vite registry/HMR tests when the new behavior affects dependency
-   tracking.
-6. Update `roadmap.md` when a roadmap item becomes implemented or changes shape.
-
-When adding resolver features:
-
-1. Prefer structured indexes over repeated AST scans.
-2. Normalize paths consistently with `/` for keys.
-3. Handle cycles explicitly.
-4. Keep external package expansion opt-in.
-5. Preserve unresolved/reference output instead of dropping information.
-
-When adding Vite features:
-
-1. Keep transforms deterministic and side-effect-light.
-2. Register consumers even when a type is currently unresolved so HMR can recover
-   when the type is restored.
-3. Avoid embedding larger or repeated JSON when a cache or virtual module would
-   be more appropriate.
-4. Test dev and build behavior separately when unresolved calls are involved.
-
-## Config Surface Notes
-
-Some config fields exist before full behavior is implemented. Treat these as
-intentional roadmap items, not completed features:
-
-- `resolveMode`
+- `analysis: "hybrid" | "static"`
+- `presets`
+- `include`, `exclude`
+- `ignoreTypes`
+- `maxDepth`
+- `tsconfig`
+- `buildMode: "indexOnly" | "eagerPublic" | "eagerAll"`
+- `outputMode: "inline" | "virtual"`
+- `externalTypes: "ignore" | "reference" | "resolve"`
 - `tags`
-
-Do not document these as fully supported until tests prove the behavior.
-
-Potential future config from `roadmap.md`:
-
-- `buildMode: 'indexOnly' | 'eagerPublic' | 'eagerAll'`
 - `propFilter`
 - `skipPropsWithName`
 - `skipPropsWithoutDoc`
 - `skipPropsFromExternalFiles`
+- `experimentalDebug`
 
-## Common Pitfalls
+Defaults apply hybrid analysis plus TypeScript, React, and DOM presets. Setting
+`presets` explicitly opts out of the default preset set.
 
-- Do not replace structured `DocType` output with `typeToString`-style strings.
-- Do not pull in TypeScript checker APIs for convenience in core extraction.
-- Do not silently drop props when utility evaluation fails.
-- Do not expand React/DOM inherited types by default; use `ignoreTypes` and
-  external policy controls.
-- Do not forget HMR invalidation when adding new reference-bearing `DocType`
-  variants.
-- Do not treat absolute Windows paths and POSIX paths differently in registry
-  keys.
-- Do not remove unresolved `getDocs<T>()` imports in dev when some calls still
-  need the runtime stub.
+Do not reintroduce `resolveMode` or add broad public fallback-policy options
+without concrete, tested user need.
+
+## Release
+
+Changesets handles semantic versioning, changelogs, and publishing for both
+published packages. They are configured as a fixed release group.
+
+- Add a changeset for every user-visible package change: `pnpm changeset`.
+- The unified CI workflow runs code quality on pull requests and non-`master`
+  branches.
+- On pushes to `master`, the workflow opens a version PR or publishes after that
+  PR is merged.
+- Publishing runs `pnpm release:check` before `changeset publish`.
+- CI installs pnpm directly with npm and does not use Corepack.
+- Publishing requires `NPM_TOKEN` and emits npm provenance metadata.
+
+## Code Style
+
+- Prefer `type` over `interface`.
+- Use type-only imports/exports.
+- Prefer named exports.
+- No `any`; avoid assertions where possible.
+- Prefix intentionally unused variables with `_`.
+- Use arrow functions unless `this` is required.
+- Avoid inline-destructured function parameters.
+- Avoid functions with more than two arguments; use typed options objects.
+- Prefer guard clauses and straightforward conditionals with blocks.
+- Keep modules cohesive; split large utility/constants files over 300 LOC.
+- Add JSDoc comments for properties of public/codebase types.
+- Comments should explain why, invariants, and external-system quirks.
+
+## Documentation
+
+Update README, package READMEs, architecture docs, and this file when behavior,
+source layout, public API, resolver/Vite contracts, release flow, or operational
+assumptions change.
+
+Current docs:
+
+- `README.md`: user-facing overview, schema, config, release.
+- `packages/docgen/README.md`: core package usage.
+- `packages/vite-plugin/README.md`: Vite adapter usage.
+- `docs/architecture.md`: current architecture.
+- `docs/architecture-deep-dive.md`: maintainer details.
 
 ## Definition Of Done
 
-A change is generally done when:
-
 - Relevant tests are added or updated.
+- `pnpm typecheck` passes for TypeScript-facing changes.
 - `pnpm test` passes, or the exact reason it could not be run is documented.
 - Public schema changes are intentional and reflected in tests/snapshots.
-- `roadmap.md` is updated if the change completes or reshapes a roadmap item.
-- The implementation preserves the static-analysis-first product direction.
+- Architecture and release docs stay aligned with code changes.

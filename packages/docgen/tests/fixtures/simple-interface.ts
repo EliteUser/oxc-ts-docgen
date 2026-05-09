@@ -14,7 +14,9 @@ export interface ButtonProps {
    */
   variant: "primary" | "secondary" | "ghost";
 
-  /** Whether the button is disabled. */
+  /**
+   * Whether the button is disabled.
+   */
   disabled?: boolean;
 
   /**
@@ -22,7 +24,9 @@ export interface ButtonProps {
    */
   onClick?: (event: MouseEvent) => void;
 
-  /** The content of the button. */
+  /**
+   * The content of the button.
+   */
   children: React.ReactNode;
 }
 

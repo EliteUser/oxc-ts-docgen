@@ -17,6 +17,8 @@ export interface ButtonProps extends BaseProps {
    */
   variant: ButtonVariant;
 
-  /** Whether the button is disabled. */
+  /**
+   * Whether the button is disabled.
+   */
   disabled?: boolean;
 }

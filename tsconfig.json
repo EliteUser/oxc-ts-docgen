@@ -14,6 +14,10 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "references": [{ "path": "./packages/docgen" }, { "path": "./packages/vite-plugin" }],
+  "references": [
+    { "path": "./packages/docgen" },
+    { "path": "./packages/vite-plugin" },
+    { "path": "./playground" }
+  ],
   "include": []
 }

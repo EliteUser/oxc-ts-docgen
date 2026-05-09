@@ -1,126 +1,77 @@
 import { StrictMode, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { getDocs } from "@oxc-ts-docgen/docgen";
-import type { DocSchema } from "@oxc-ts-docgen/docgen";
-import type { ButtonProps } from "./components/button";
-import type { TextFieldProps } from "./components/text-field";
-import { ArgTable } from "./components/ArgTable";
 
-const buttonDocs = getDocs<ButtonProps>();
-const textFieldDocs = getDocs<TextFieldProps>();
+import { ArgTable } from "./components/arg-table/ArgTable";
+import { componentCaseExamples } from "./docs";
+import styles from "./styles.module.css";
 
-const components: Record<string, DocSchema> = {
-  ButtonProps: buttonDocs,
-  TextFieldProps: textFieldDocs,
-};
-
-type Tab = "table" | "json";
+const examples = componentCaseExamples;
 
 function App() {
-  const [selected, setSelected] = useState("ButtonProps");
-  const [tab, setTab] = useState<Tab>("table");
+  const [selectedId, setSelectedId] = useState(examples[0]?.id ?? "");
 
-  const docs = components[selected];
-  const entry = docs?.entries[0];
+  const selectedExample = examples.find((example) => example.id === selectedId) ?? examples[0];
+  const docs = selectedExample.docs;
+  const entry = docs.entries[0];
 
   return (
-    <div
-      style={{
-        fontFamily: "system-ui, sans-serif",
-        maxWidth: 960,
-        margin: "2rem auto",
-        padding: "0 1rem",
-        background: "#111",
-        color: "#eee",
-        minHeight: "100vh",
-      }}
-    >
-      <h1 style={{ color: "#8b5cf6", marginBottom: "1.5rem" }}>oxc-ts-docgen playground</h1>
+    <div className={styles.shell}>
+      <header className={styles.header}>
+        <h1 className={styles.title}>oxc-ts-docgen playground</h1>
+      </header>
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
-        {Object.keys(components).map((name) => (
-          <button
-            key={name}
-            onClick={() => setSelected(name)}
-            style={{
-              padding: "6px 16px",
-              borderRadius: 6,
-              border: selected === name ? "1px solid #8b5cf6" : "1px solid #333",
-              background: selected === name ? "#1e1b4b" : "transparent",
-              color: selected === name ? "#c4b5fd" : "#888",
-              cursor: "pointer",
-              fontSize: 14,
-              fontWeight: selected === name ? 600 : 400,
-              fontFamily: "monospace",
-            }}
-          >
-            {name}
-          </button>
-        ))}
-      </div>
-
-      {entry && (
-        <>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-            <h2 style={{ color: "#6366f1", margin: "0 0 0.5rem" }}>{entry.name}</h2>
-            <span
-              style={{
-                fontSize: 12,
-                padding: "2px 8px",
-                borderRadius: 4,
-                background: "#1e1b4b",
-                color: "#818cf8",
-              }}
-            >
-              {entry.kind}
-            </span>
-            <span style={{ fontSize: 13, color: "#666" }}>{entry.properties.length} props</span>
+      <main className={styles.layout}>
+        <aside className={styles.sidebar} aria-labelledby="playground-sidebar-title">
+          <div className={styles.sidebarTitle} id="playground-sidebar-title">
+            Examples
           </div>
+          <nav className={styles.nav} aria-label="Doc examples">
+            {examples.map((example) => {
+              const selected = example.id === selectedExample.id;
 
-          {entry.description && (
-            <p style={{ color: "#aaa", margin: "0.25rem 0 1rem" }}>{entry.description}</p>
-          )}
+              return (
+                <button
+                  key={example.id}
+                  type="button"
+                  onClick={() => setSelectedId(example.id)}
+                  aria-current={selected ? "page" : undefined}
+                  className={`${styles.navItem} ${selected ? styles.navItemSelected : ""}`}
+                >
+                  <span className={styles.navItemType}>{example.typeName}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </aside>
 
-          <div style={{ display: "flex", gap: 0, marginBottom: 16 }}>
-            {(["table", "json"] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                style={{
-                  padding: "8px 20px",
-                  border: "1px solid #333",
-                  borderBottom: tab === t ? "2px solid #8b5cf6" : "1px solid #333",
-                  background: tab === t ? "#1a1a2e" : "#111",
-                  color: tab === t ? "#c4b5fd" : "#888",
-                  cursor: "pointer",
-                  fontSize: 14,
-                  fontWeight: tab === t ? 600 : 400,
-                }}
-              >
-                {t === "table" ? "Props Table" : "Raw JSON"}
-              </button>
-            ))}
-          </div>
+        <section
+          className={styles.main}
+          aria-labelledby={entry ? "playground-entry-title" : undefined}
+        >
+          {entry ? (
+            <>
+              <div className={styles.entryHeader}>
+                <h2 className={styles.entryTitle} id="playground-entry-title">
+                  {entry.name}
+                </h2>
+                <span className={styles.entryKind}>{entry.kind}</span>
+                <span className={styles.entryCount}>{entry.properties.length} props</span>
+              </div>
 
-          {tab === "table" ? (
-            <ArgTable properties={entry.properties} related={docs.related} />
+              <div className={styles.card}>
+                <ArgTable properties={entry.properties} related={docs.related} />
+              </div>
+
+              <details className={styles.json}>
+                <summary className={styles.jsonSummary}>Raw JSON</summary>
+                <pre className={styles.jsonCode}>{JSON.stringify(docs, null, 2)}</pre>
+              </details>
+            </>
           ) : (
-            <pre
-              style={{
-                background: "#1a1a2e",
-                border: "1px solid #333",
-                borderRadius: 8,
-                padding: "1rem",
-                overflowX: "auto",
-                fontSize: 13,
-                lineHeight: 1.5,
-              }}
-            >
-              {JSON.stringify(docs, null, 2)}
-            </pre>
+            <p>No entry was generated for {selectedExample.typeName}.</p>
           )}
-        </>
-      )}
+        </section>
+      </main>
     </div>
   );
 }

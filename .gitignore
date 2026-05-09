@@ -8,8 +8,10 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+.pnpm-store/
 dist
 dist-ssr
+temp
 *.local
 
 # Editor directories and files
@@ -22,3 +24,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# AI Tools
+./AGENTS.md
+.serena/
+.codex
+.cursor

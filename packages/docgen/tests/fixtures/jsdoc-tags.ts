@@ -2,14 +2,18 @@
  * A component with many JSDoc tags.
  *
  * @since 1.0.0
+ *
  * @see https://example.com/docs
  */
 export interface DocumentedProps {
   /**
    * The component's title.
    *
-   * @example "Hello World"
-   * @example "Another example"
+   * @example
+   *   "Hello World";
+   *
+   * @example
+   *   "Another example";
    */
   title: string;
 
@@ -23,8 +27,9 @@ export interface DocumentedProps {
   /**
    * Size of the component.
    *
-   * @default medium
    * @since 2.0.0
+   *
+   * @default medium
    */
   size?: "small" | "medium" | "large";
 

@@ -9,12 +9,18 @@ export type ThemeConfig = {
    */
   primaryColor: string;
 
-  /** Font size in pixels. */
+  /**
+   * Font size in pixels.
+   */
   fontSize: number;
 
-  /** Whether dark mode is enabled. */
+  /**
+   * Whether dark mode is enabled.
+   */
   darkMode?: boolean;
 
-  /** Border radius. */
+  /**
+   * Border radius.
+   */
   readonly borderRadius: number;
 };

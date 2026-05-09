@@ -9,6 +9,7 @@
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
     "noEmit": true,
+    "tsBuildInfoFile": "../node_modules/.cache/tsc/playground.tsbuildinfo",
     "strict": true,
     "erasableSyntaxOnly": true,
     "jsx": "react-jsx"

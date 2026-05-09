@@ -1,13 +1,10 @@
-import { defineConfig } from "vite";
+import { docgenPlugin } from "@synthfall/oxc-ts-docgen-vite";
 import react from "@vitejs/plugin-react";
-import { docgenPlugin } from "@oxc-ts-docgen/vite-plugin";
-import { REACT_IGNORE_TYPES, DOM_IGNORE_TYPES } from "@oxc-ts-docgen/docgen";
+import { defineConfig } from "vite";
 
 export default defineConfig({
-  plugins: [
-    react(),
-    docgenPlugin({
-      ignoreTypes: [...REACT_IGNORE_TYPES, ...DOM_IGNORE_TYPES],
-    }),
-  ],
+  server: {
+    open: true,
+  },
+  plugins: [react(), docgenPlugin()],
 });

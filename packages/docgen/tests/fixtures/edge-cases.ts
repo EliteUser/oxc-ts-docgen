@@ -16,11 +16,17 @@ export interface NoDocProps {
  * Interface with method signatures.
  */
 export interface WithMethods {
-  /** Simple getter. */
+  /**
+   * Simple getter.
+   */
   getName(): string;
-  /** Setter with param. */
+  /**
+   * Setter with param.
+   */
   setName(name: string): void;
-  /** Method with multiple params. */
+  /**
+   * Method with multiple params.
+   */
   calculate(a: number, b: number, op?: string): number;
 }
 

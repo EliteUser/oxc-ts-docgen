@@ -6,11 +6,17 @@ export interface StyledProps {
    * Inline style overrides.
    */
   style?: {
-    /** Text color. */
+    /**
+     * Text color.
+     */
     color?: string;
-    /** Background color. */
+    /**
+     * Background color.
+     */
     backgroundColor?: string;
-    /** Padding in pixels. */
+    /**
+     * Padding in pixels.
+     */
     padding?: number;
   };
 
@@ -18,11 +24,17 @@ export interface StyledProps {
    * Layout configuration.
    */
   layout: {
-    /** Direction of layout. */
+    /**
+     * Direction of layout.
+     */
     direction: "row" | "column";
-    /** Gap between items. */
+    /**
+     * Gap between items.
+     */
     gap: number;
-    /** Nested margin config. */
+    /**
+     * Nested margin config.
+     */
     margin: {
       top: number;
       right: number;

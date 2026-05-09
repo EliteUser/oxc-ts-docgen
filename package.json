@@ -4,26 +4,28 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "pnpm --filter playground run dev",
     "build": "pnpm -r run build",
+    "typecheck": "tsc -b --pretty false --force",
     "test": "vitest run",
-    "test:watch": "vitest",
     "lint": "oxlint .",
-    "fmt": "oxfmt .",
-    "dev": "pnpm --filter playground run dev"
+    "format": "oxfmt .",
+    "changeset": "changeset",
+    "release:version": "changeset version",
+    "release:check": "pnpm build && node scripts/check-release-artifacts.mjs",
+    "release:publish": "pnpm release:check && changeset publish"
   },
   "devDependencies": {
-    "@types/node": "^25.6.0",
-    "oxfmt": "^0.48.0",
-    "oxlint": "^1.63.0",
-    "tsup": "^8.5.0",
-    "typescript": "~6.0.2",
-    "vitest": "^3.2.1"
+    "@changesets/cli": "^2.31.0",
+    "@types/node": "^24.12.4",
+    "oxfmt": "^0.56.0",
+    "oxlint": "^1.71.0",
+    "tsdown": "^0.22.0",
+    "typescript": "~6.0.3",
+    "vitest": "^4.1.7"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "oxc-parser",
-      "oxc-resolver"
-    ]
-  }
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "packageManager": "pnpm@11.9.0"
 }

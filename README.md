@@ -1,189 +1,259 @@
 # oxc-ts-docgen
 
-A fast, controllable TypeScript documentation generator built on [oxc-parser](https://www.npmjs.com/package/oxc-parser).
+Structured TypeScript metadata for custom docs UIs in Vite apps.
 
-Designed to replace `react-docgen-typescript` with a more predictable, JSDoc-first approach that gives you full control over type resolution, output shape, and what gets documented.
+```ts
+import { getDocs } from "@synthfall/oxc-ts-docgen";
+import type { ButtonProps } from "./button";
 
-## Features
+const docs = getDocs<ButtonProps>();
+```
 
-- **Fast** — Uses oxc-parser (Rust-based) for parsing. Single-file docgen runs in < 0.1ms.
-- **JSDoc-first** — Treats JSDoc comments as the primary source of documentation metadata.
-- **Controllable** — Configure which types to ignore, how deep to resolve, and how to handle references.
-- **Vite plugin** — Compile-time `getDocs<T>()` API with HMR support.
-- **Stable output** — Versioned JSON schema (`DocSchema`) designed for consumption by UI tools and doc renderers.
-- **Cross-file resolution** — Uses `oxc-resolver` for module resolution, follows imports and common barrels, resolves `extends`, and merges inherited properties.
+`oxc-ts-docgen` turns explicit TypeScript type requests into predictable JSON.
+You bring the UI: prop tables, token browsers, config editors, design-system
+docs, or any other screen that needs type metadata.
 
-## Packages
+It is not a documentation website generator. It does not replace TypeDoc, API
+Extractor, Storybook, or React docgen.
 
-| Package                      | Description                                            |
-| ---------------------------- | ------------------------------------------------------ |
-| `@oxc-ts-docgen/docgen`      | Core documentation engine                              |
-| `@oxc-ts-docgen/vite-plugin` | Vite plugin for compile-time `getDocs<T>()` transforms |
+## When To Use It
 
-## Quick Start
+Use `oxc-ts-docgen` when you want to:
 
-### Programmatic API
+- document one chosen TypeScript type inside a Vite app;
+- render the result with your own UI components;
+- keep documentation data close to source code;
+- support interfaces, type aliases, enums, function types, utility-composed
+  props, design tokens, config schemas, and domain models.
+
+## Install
 
 ```bash
-pnpm add @oxc-ts-docgen/docgen
+pnpm add -D @synthfall/oxc-ts-docgen @synthfall/oxc-ts-docgen-vite
 ```
 
-```typescript
-import { generateDocs } from "@oxc-ts-docgen/docgen";
+Application code imports `getDocs()` from `@synthfall/oxc-ts-docgen`. The Vite
+plugin replaces those calls at build time.
 
-const result = generateDocs({
-  filePath: "src/Button.ts",
-  typeName: "ButtonProps",
-  config: {
-    ignoreTypes: ["HTMLAttributes", "CSSProperties"],
-  },
-});
+Published packages support Node.js >=22.12.0.
 
-console.log(result);
-```
+## Vite Setup
 
-### Vite Plugin
-
-```bash
-pnpm add @oxc-ts-docgen/docgen @oxc-ts-docgen/vite-plugin
-```
-
-```typescript
+```ts
 // vite.config.ts
 import { defineConfig } from "vite";
-import { docgenPlugin } from "@oxc-ts-docgen/vite-plugin";
+import { docgenPlugin } from "@synthfall/oxc-ts-docgen-vite";
 
 export default defineConfig({
   plugins: [
     docgenPlugin({
-      ignoreTypes: ["HTMLAttributes", "CSSProperties"],
-      externalTypes: "reference",
       tsconfig: "./tsconfig.json",
     }),
   ],
 });
 ```
 
-Then in your application code:
+## Basic Usage
 
-```typescript
-import { getDocs } from "@oxc-ts-docgen/docgen";
-import type { ButtonProps } from "./Button";
+Create or export the type you want to document:
 
-// Replaced at compile time with the JSON documentation data
+```ts
+// button.ts
+export type ButtonProps = {
+  /** Text shown inside the button. */
+  label: string;
+
+  /** Visual style. */
+  variant?: "primary" | "secondary";
+
+  /** Called when the user activates the button. */
+  onClick?: () => void;
+};
+```
+
+Ask for metadata from app code:
+
+```ts
+// docs.ts
+import { getDocs } from "@synthfall/oxc-ts-docgen";
+import type { ButtonProps } from "./button";
+
+export const buttonDocs = getDocs<ButtonProps>();
+```
+
+During Vite transform, the call is replaced with JSON like this:
+
+```ts
+{
+  version: 1,
+  entries: [
+    {
+      name: "ButtonProps",
+      kind: "type",
+      properties: [
+        {
+          name: "label",
+          optional: false,
+          description: "Text shown inside the button.",
+          type: { kind: "primitive", name: "string" }
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Target Forms
+
+Generic form for imported or local named types:
+
+```ts
 const docs = getDocs<ButtonProps>();
 ```
 
-### CLI
+Object form when you want to point at a file and symbol:
+
+```ts
+const docs = getDocs({
+  path: "./button",
+  symbol: "ButtonProps",
+});
+```
+
+Batch form when you want several docs records and your own metadata:
+
+```ts
+const examples = getDocs([
+  { id: "button", title: "Button", path: "./button", symbol: "ButtonProps" },
+] as const);
+```
+
+Batch output preserves your metadata, removes compile-only `path` and `symbol`,
+and adds `docs`.
+
+## Important Rules
+
+Generic targets should be named type references. If the type is complex, name it
+first:
+
+```ts
+type PublicButtonProps = Required<ButtonProps>;
+
+const docs = getDocs<PublicButtonProps>();
+```
+
+Object and batch targets must be statically readable. Inline literals,
+top-level const registries, `as const`, and `satisfies` wrappers are supported.
+Runtime values, computed keys, spreads, and imported registries are not.
+
+Imported targets must be exported from their source module. In development,
+recoverable unresolved calls stay in place so HMR can recover. In production
+builds, unresolved targets fail the build.
+
+## Vue SFC Usage
+
+The Vite plugin supports inline `<script>` and
+`<script setup lang="ts">` blocks.
+
+```vue
+<script setup lang="ts">
+import { getDocs } from "@synthfall/oxc-ts-docgen";
+import type { ButtonProps } from "./button";
+
+const docs = getDocs<ButtonProps>();
+</script>
+```
+
+For best results, keep documented types in exported `.ts` or `.tsx` modules.
+Same-file `.vue` type declarations are not indexed as source targets yet.
+
+## Programmatic API
+
+Use the core package directly outside the Vite transform:
+
+```ts
+import { generateDocs } from "@synthfall/oxc-ts-docgen";
+
+const schema = generateDocs({
+  filePath: "src/button.ts",
+  typeName: "ButtonProps",
+  config: {
+    externalTypes: "reference",
+  },
+});
+```
+
+The package also exports schema/config types, preset constants,
+`generateDocsFromSource()`, and result-returning APIs for diagnostics.
+
+## CLI
 
 ```bash
-npx oxc-ts-docgen src/Button.ts ButtonProps
-npx oxc-ts-docgen src/Button.ts ButtonProps --ignore HTMLAttributes,CSSProperties
-npx oxc-ts-docgen src/Button.ts ButtonProps --compact
+npx oxc-ts-docgen src/button.ts ButtonProps
+npx oxc-ts-docgen src/button.ts ButtonProps --config docgen.config.json
 ```
 
-## Output Schema
-
-The output follows a stable `DocSchema` format:
-
-```typescript
-interface DocSchema {
-  version: 1;
-  entries: DocEntry[];
-}
-```
-
-Each `DocEntry` contains:
-
-- `name` — Type name
-- `kind` — `'interface'` | `'typeAlias'` | `'enum'` | `'function'`
-- `description` — JSDoc description
-- `tags` — Extracted JSDoc tags (`@default`, `@deprecated`, `@example`, etc.)
-- `typeParameters` — Generic type parameters
-- `properties` — Documented properties with types, optionality, JSDoc, and source locations
-- `type` — Full recursive type representation
+The CLI prints `DocSchema` JSON.
 
 ## Configuration
 
-```typescript
-interface DocgenConfig {
-  include: string[]; // File patterns to include
-  exclude: string[]; // File patterns to exclude
-  ignoreTypes: string[]; // Types to skip resolution for
-  maxDepth: number; // Max resolution depth (default: 3)
-  resolveMode: "inline" | "reference" | "auto";
-  externalTypes: "ignore" | "reference" | "resolve";
-  tsconfig: string | undefined;
-  tags: Record<string, (value: string) => unknown>;
-}
+```ts
+docgenPlugin({
+  analysis: "hybrid",
+  presets: ["typescript", "react", "dom"],
+  include: ["src/**/*.ts", "src/**/*.tsx"],
+  exclude: ["node_modules/**"],
+  ignoreTypes: ["ReactNode"],
+  maxDepth: 3,
+  tsconfig: "./tsconfig.json",
+  externalTypes: "reference",
+  outputMode: "inline",
+});
 ```
 
-Current defaults:
+Common options:
 
-- `include`: `['**/*.ts', '**/*.tsx']`
-- `exclude`: `['**/node_modules/**', '**/*.test.ts', '**/*.spec.ts']`
-- `ignoreTypes`: TypeScript built-in utility types
-- `maxDepth`: `3`
-- `resolveMode`: `'auto'`
-- `externalTypes`: `'reference'`
-- `tsconfig`: auto-discovered by `oxc-resolver` unless explicitly provided
-- `tags`: `{}`
+- `analysis`: `hybrid` or `static`. Hybrid is the default.
+- `presets`: built-in TypeScript, React, and DOM policies.
+- `include` / `exclude`: source scan globs.
+- `ignoreTypes`: type names to keep out of expanded output.
+- `maxDepth`: recursive resolution limit.
+- `tsconfig`: TypeScript project config for module and semantic resolution.
+- `externalTypes`: `ignore`, `reference`, or `resolve`.
+- `buildMode`: `indexOnly`, `eagerPublic`, or `eagerAll` startup behavior.
+- `outputMode`: `inline` or `virtual`.
+- `tags`: custom JSDoc tag parsers keyed by tag name.
+- `propFilter`: final callback for including or excluding properties.
+- `skipPropsWithName`: property names to omit.
+- `skipPropsWithoutDoc`: omit properties without descriptions or tags.
+- `skipPropsFromExternalFiles`: omit properties declared outside the project.
+- `experimentalDebug`: opt-in callback for diagnostic and dependency records.
 
-`resolveMode` and custom `tags` are reserved config surface today. They are not
-fully implemented behavior yet.
+## How It Works
 
-## Resolution Behavior
-
-`oxc-ts-docgen` is static-analysis-first. It uses `oxc-parser` for ASTs,
-`oxc-walker` for non-trivial Vite transform traversal, and `oxc-resolver` for
-module specifier resolution.
-
-Supported today:
-
-- Relative and absolute imports.
-- TypeScript extension aliases such as importing `./button.js` from a
-  `button.ts` source file.
-- Directory `index` candidates.
-- `tsconfig` discovery through `oxc-resolver`.
-- `compilerOptions.baseUrl`.
-- `compilerOptions.paths`, including wildcard aliases.
-- Common type barrels:
-  - `export type { Foo } from './foo'`
-  - `export { type Foo } from './foo'`
-  - `export { Foo as Bar } from './foo'`
-  - `export * from './foo'`
-- Package imports as references by default.
-- Opt-in package expansion with `externalTypes: 'resolve'`.
-- Vite HMR invalidation for direct type files, barrel files, final declaration
-  files, and `tsconfig*.json` changes.
-
-External type policy:
-
-- `ignore`: do not expand package imports.
-- `reference`: preserve external type names as references without parsing
-  packages. This is the default.
-- `resolve`: best-effort static expansion into package source or declaration
-  files when resolvable.
-
-Intentional boundaries:
-
-- No TypeScript `Program`, `TypeChecker`, or LanguageService in the default
-  extraction path.
-- No checker-perfect semantic evaluation.
-- No React component auto-detection, HOC detection, or Storybook-specific
-  output in core.
-- Default exports, namespace or qualified type references, computed property
-  names, symbol keys, and generic substitution are still bounded or incomplete.
-- Missing or invalid `tsconfig` diagnostics are still being hardened.
-
-## Development
-
-```bash
-pnpm install
-pnpm build
-pnpm test
-pnpm dev         # Start playground
+```txt
+OXC scans and transforms getDocs() calls quickly.
+TypeScript resolves semantic property sets when syntax is not enough.
+Docgen normalizes both paths into one JSON schema.
 ```
+
+The output does not expose whether a property came from OXC or TypeScript. Your
+UI only consumes `DocSchema`.
+
+## More Documentation
+
+- [GitHub repository](https://github.com/EliteUser/oxc-ts-docgen)
+- [Issue tracker](https://github.com/EliteUser/oxc-ts-docgen/issues)
+- [Architecture overview](docs/architecture.md)
+- [Architecture deep dive](docs/architecture-deep-dive.md)
+
+## Release Process
+
+Changesets manages the two packages as a fixed release group. Pull requests and
+non-`master` branches run lint, typecheck, tests, and release artifact checks.
+Pushes to `master` create a version pull request or publish after that pull
+request is merged. Publishing requires the `NPM_TOKEN` repository secret and
+emits npm provenance metadata.
 
 ## License
 

@@ -1,4 +1,6 @@
 export interface DirectoryProps {
-  /** Directory import prop. */
+  /**
+   * Directory import prop.
+   */
   label: string;
 }

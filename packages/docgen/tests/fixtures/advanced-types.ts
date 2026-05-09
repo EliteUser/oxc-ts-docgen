@@ -14,12 +14,16 @@ export type IsString<T> = T extends string ? true : false;
  * Indexed access.
  */
 export interface Config {
-  /** Database settings. */
+  /**
+   * Database settings.
+   */
   database: {
     host: string;
     port: number;
   };
-  /** Cache settings. */
+  /**
+   * Cache settings.
+   */
   cache: {
     ttl: number;
     enabled: boolean;
