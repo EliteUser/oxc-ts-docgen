@@ -10,9 +10,14 @@
     "moduleDetection": "force",
     "noEmit": true,
     "tsBuildInfoFile": "../node_modules/.cache/tsc/playground.tsbuildinfo",
+    "paths": {
+      "@synthfall/oxc-ts-docgen": ["../packages/docgen/src/index.ts"],
+      "@synthfall/oxc-ts-docgen-vite": ["../packages/vite-plugin/src/index.ts"]
+    },
     "strict": true,
     "erasableSyntaxOnly": true,
     "jsx": "react-jsx"
   },
+  "references": [{ "path": "../packages/docgen" }, { "path": "../packages/vite-plugin" }],
   "include": ["src"]
 }
