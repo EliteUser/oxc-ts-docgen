@@ -3,6 +3,8 @@ import { createRequire } from "node:module";
 import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { checkPackedConsumer } from "./check-packed-consumer.mjs";
+
 const workspaceRoot = fileURLToPath(new URL("..", import.meta.url));
 const require = createRequire(import.meta.url);
 
@@ -265,6 +267,15 @@ const resolveWorkspacePath = (...segments) => {
 
 for (const packageDir of findPublishablePackageDirs()) {
   await checkPackage(packageDir);
+}
+
+try {
+  checkPackedConsumer({
+    packageDirs: findPublishablePackageDirs(),
+    workspaceRoot,
+  });
+} catch (error) {
+  failures.push(`Packed consumer smoke test failed: ${errorMessage(error)}`);
 }
 
 if (failures.length > 0) {

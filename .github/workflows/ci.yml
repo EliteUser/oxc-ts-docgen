@@ -46,6 +46,38 @@ jobs:
       - name: Release artifact check
         run: pnpm release:check
 
+  vite-compatibility:
+    if: github.event_name == 'pull_request' || github.ref != 'refs/heads/master'
+    name: Vite ${{ matrix.vite-version }} compatibility
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        vite-version:
+          - 6
+          - 7
+          - 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+
+      - name: Install pnpm
+        run: npm install --global pnpm@11.9.0
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Select Vite version
+        run: pnpm --filter @synthfall/oxc-ts-docgen-vite add --save-dev vite@${{ matrix.vite-version }} --lockfile=false
+
+      - name: Test Vite plugin
+        run: pnpm exec vitest run packages/vite-plugin/tests
+
   release:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     name: Version or publish packages
