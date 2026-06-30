@@ -130,8 +130,8 @@ included, and the configured `tsconfig` is valid.
 
 ## Requirements
 
-Published packages support Node.js >=22.12.0. The Vite plugin has a peer
-dependency on Vite >=6.0.0.
+Published packages support Node.js >=22.12.0. The Vite plugin declares support
+for Vite 6, 7, and 8 through its peer dependency range.
 
 Report adapter problems in the
 [issue tracker](https://github.com/EliteUser/oxc-ts-docgen/issues).

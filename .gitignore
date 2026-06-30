@@ -26,7 +26,7 @@ temp
 *.sw?
 
 # AI Tools
-./AGENTS.md
+AGENTS.md
 .serena/
 .codex
 .cursor
