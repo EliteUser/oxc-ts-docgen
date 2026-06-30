@@ -1,6 +1,6 @@
 {
   "name": "@synthfall/oxc-ts-docgen-vite",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Vite plugin that compiles getDocs<T>() calls into structured TypeScript metadata.",
   "keywords": [
     "docgen",
